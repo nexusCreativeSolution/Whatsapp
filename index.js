@@ -1,4 +1,4 @@
-const createClient = require('./server');
+const connectToWhatsApp = require('./server');
 const handleMessage = require('./messageHandler');
 
 async function main() {
