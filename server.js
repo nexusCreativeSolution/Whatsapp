@@ -1,6 +1,6 @@
 const { default: makeWASocket, useMultiFileAuthState } = require('@whiskeysockets/baileys');
 const qrcode = require('qrcode-terminal');
-const Boom = require('boom');  // Make sure to add this dependency if not already present
+ // Make sure to add this dependency if not already present
 
 async function connectToWhatsApp() {
     const { state, saveCreds } = await useMultiFileAuthState('./auth_info');
