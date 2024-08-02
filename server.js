@@ -1,5 +1,6 @@
 const { default: makeWASocket, useMultiFileAuthState } = require('@whiskeysockets/baileys');
 const qrcode = require('qrcode-terminal');
+const Boom = require('boom');  // Make sure to add this dependency if not already present
 
 async function connectToWhatsApp() {
     const { state, saveCreds } = await useMultiFileAuthState('./auth_info');
@@ -16,7 +17,7 @@ async function connectToWhatsApp() {
         if (connection === 'close') {
             const shouldReconnect = (lastDisconnect.error === Boom.toError());
             if (shouldReconnect) {
-                connectToWhatsApp();
+                connectToWhatsApp();  // Reconnect if connection was closed
             } else {
                 console.log('Connection closed. You need to scan the QR code again.');
             }
@@ -28,6 +29,8 @@ async function connectToWhatsApp() {
     sock.ev.on('messages.upsert', async (m) => {
         console.log(JSON.stringify(m, undefined, 2));
     });
+
+    return sock; // Return the socket instance
 }
 
-connectToWhatsApp();
+module.exports = connectToWhatsApp;  // Export the function
