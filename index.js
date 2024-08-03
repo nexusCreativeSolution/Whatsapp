@@ -13,5 +13,18 @@ async function main() {
         }
     });
 }
+const mongoose = require('mongoose');
 
+// Replace with your MongoDB URI
+const mongoURI = 'mongodb+srv://casinobot:123johniphone@cluster0.nfztvsi.mongodb.net/?retryWrites=true&w=majority ';
+
+mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true });
+
+mongoose.connection.on('connected', () => {
+    console.log('Connected to MongoDB');
+});
+
+mongoose.connection.on('error', (err) => {
+    console.error(`MongoDB connection error: ${err}`);
+});
 main();  // Run the main function
