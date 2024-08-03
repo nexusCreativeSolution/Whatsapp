@@ -28,7 +28,7 @@ async function handleMessage(sock, message) {
                         responseText = `══════════════════════════════
 🌟 𝑩𝒐𝒕 𝑴𝒆𝒏𝒖 🌟
 ══════════════════════════════
-   𝑾𝑬𝑩𝑺𝑰𝑻𝑬 𝑪𝑹𝑬𝑨𝑇𝑰𝑶𝑵
+   𝑾𝑬𝑩𝑺𝑰𝑻𝑬 𝑪𝑹𝑬𝑨𝑻𝑰𝑶𝑵
    ➤ Custom websites to boost your online presence.
    ─────────────────────────
    𝑭𝑳𝒀𝑬𝑹 𝑫𝑬𝑺𝑰𝑮𝑵
@@ -60,7 +60,69 @@ async function handleMessage(sock, message) {
 - /menu: Show the bot menu.
 - /help: Show this help message.
 - chat: Request a live chat.
-- end chat: End the current chat session.`;
+- end chat: End the current chat session.
+- /pricing: Show the pricing information.
+- /faq: Show frequently asked questions.`;
+                    } else if (text === '/pricing') {
+                        responseText = `══════════════════════════════
+🌟 **Our Pricing** 🌟
+══════════════════════════════
+
+**1. Website Creation**
+   - **Basic Package**: JMD 10,000
+     - Simple design, up to 5 pages
+   - **Standard Package**: JMD 20,000
+     - Advanced design, up to 10 pages, includes SEO optimization
+   - **Premium Package**: JMD 30,000
+     - Custom design, unlimited pages, includes SEO optimization and maintenance for 1 month
+
+**2. Flyer Design**
+   - **Single-Sided Flyer**: JMD 2,000
+     - Professional design, digital file
+   - **Double-Sided Flyer**: JMD 3,500
+     - Professional design, digital file, print-ready
+
+**3. Telegram/WhatsApp Bots**
+   - **Basic Bot**: JMD 7,500
+     - Simple automation, up to 5 commands
+   - **Advanced Bot**: JMD 12,500
+     - Advanced features, up to 15 commands, integration with third-party services
+   - **Custom Bot**: JMD 20,000
+     - Fully customized features, unlimited commands, ongoing support
+
+**4. Additional Services**
+   - **SEO Optimization**: JMD 5,000
+   - **Content Creation**: JMD 3,000 per hour
+   - **Website Maintenance**: JMD 2,500 per month
+
+For custom quotes or more details on any of our services, please contact us directly!
+
+══════════════════════════════
+`;
+                    } else if (text === '/faq') {
+                        responseText = `══════════════════════════════
+🌟 **Frequently Asked Questions (FAQ)** 🌟
+══════════════════════════════
+
+**Q1: What services do you offer?**
+   - We offer Website Creation, Flyer Design, and Telegram/WhatsApp Bots.
+
+**Q2: How long does it take to complete a website?**
+   - The time frame depends on the package selected and the complexity of the website. Typically, it ranges from 1 to 4 weeks.
+
+**Q3: Can I make changes to the flyer design after it's completed?**
+   - Yes, you can request changes. However, additional charges may apply depending on the extent of the revisions.
+
+**Q4: What is included in the SEO optimization service?**
+   - Our SEO optimization includes keyword research, on-page SEO, and recommendations to improve your search engine rankings.
+
+**Q5: How can I contact you for support?**
+   - You can contact us via Instagram, Telegram, WhatsApp, or through our website.
+
+For more details or specific queries, feel free to reach out to us directly!
+
+══════════════════════════════
+`;
                     } else if (text === 'chat') {
                         responseText = 'You have requested a live chat. An agent will be with you shortly.';
 
@@ -74,6 +136,16 @@ async function handleMessage(sock, message) {
                         // End the chat session
                         await LiveChat.findOneAndUpdate({ userId: from }, { status: 'completed' });
                         responseText = 'Your chat session has been ended. Thank you for reaching out!';
+                    } else if (from.endsWith('@g.us') && text) {
+                        // Handle replies or tags in the support group
+                        const liveChat = await LiveChat.findOne({ userId: from });
+                        if (liveChat && liveChat.status === 'pending') {
+                            const userMessage = `📩 Message from ${from}: ${text}`;
+                            await sock.sendMessage(GROUP_ID, { text: userMessage });
+                            responseText = 'Your message has been forwarded to the support team.';
+                        } else {
+                            responseText = 'I don\'t understand that. Type /help to see my commands.';
+                        }
                     } else {
                         responseText = 'I don\'t understand that. Type /help to see my commands.';
                     }
