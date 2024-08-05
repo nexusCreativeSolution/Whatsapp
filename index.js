@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const connectToWhatsApp = require('./server');
 const handleMessage = require('./messageHandler');
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 5000;
 
 // MongoDB connection
 const mongoURI = 'mongodb+srv://casinobot:123johniphone@cluster0.nfztvsi.mongodb.net/?retryWrites=true&w=majority';
