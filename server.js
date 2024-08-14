@@ -1,12 +1,10 @@
-const { default: makeWASocket, useMultiFileAuthState, delay } = require('@whiskeysockets/baileys');
 const qrcode = require('qrcode-terminal');
 const { RateLimiterMemory } = require('rate-limiter-flexible');
-import makeWASocket, {
-  makeCacheableSignalKeyStore,
-} from '@whiskeysockets/baileys';
-// Rate limiter settings (e.g., 5 messages per second)
-const rateLimiter = new RateLimiterMemory({ points: 5, duration: 1 });
+const { default: makeWASocket, useMultiFileAuthState, delay } = require('@whiskeysockets/baileys');
+const { makeCacheableSignalKeyStore, isJidBroadcast } = require('@whiskeysockets/baileys');
 
+const rateLimiter = new RateLimiterMemory({ points: 5, duration: 1 });
+const { pino } = require ('pino');
 // Message queue
 const messageQueue = [];
 
@@ -31,28 +29,24 @@ async function handleMessage(sock, message) {
 async function connectToWhatsApp() {
     const { state, saveCreds } = await useMultiFileAuthState('./auth_info_multi_device');
 
-    const sock: WASocket = makeWASocket({
-      printQRInTerminal: false,
-      browser: ['Ubuntu', 'Chrome', '20.0.0'],
-      version,
-      auth: {
-        creds: state.creds,
-        keys: makeCacheableSignalKeyStore(state.keys, pino({ level: "silent" })),
-      },
-      defaultQueryTimeoutMs: undefined,
-      generateHighQualityLinkPreview: true,
-      shouldIgnoreJid: (jid) => isJidBroadcast(jid),
-      syncFullHistory: true,
-      connectTimeoutMs: 1000 * 60 * 5,
-      emitOwnEvents: true,
-      markOnlineOnConnect: true,
-      shouldSyncHistoryMessage: () => true,
-      logger: pino({ level: 'silent' }),
-    });
     const sock = makeWASocket({
-        auth: state,
-        printQRInTerminal: true,
-    });
+        printQRInTerminal: false,
+        browser: ['Ubuntu', 'Chrome', '20.0.0'],
+        auth: {
+          creds: state.creds,
+          keys: makeCacheableSignalKeyStore(state.keys, pino({ level: "silent" })),
+        },
+        defaultQueryTimeoutMs: undefined,
+        generateHighQualityLinkPreview: true,
+        shouldIgnoreJid: (jid) => isJidBroadcast(jid),
+        syncFullHistory: true,
+        connectTimeoutMs: 1000 * 60 * 5,
+        emitOwnEvents: true,
+        markOnlineOnConnect: true,
+        shouldSyncHistoryMessage: () => true,
+        logger: pino({ level: 'silent' }),
+      });
+    
 
     sock.ev.on('creds.update', saveCreds);
 
@@ -90,5 +84,5 @@ async function connectToWhatsApp() {
 
     return sock;
 }
-auth: { creds: state.creds, keys: makeCachebleKeyMemoryStore(state.keys, pino({ level: "silent" })),
+
 module.exports = connectToWhatsApp;
