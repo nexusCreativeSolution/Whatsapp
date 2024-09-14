@@ -7,13 +7,13 @@ const path = require('path');
 
 let chalk;
 
-// Create readline interface for user input
+
 const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
 });
 
-// Default custom options for WhatsApp client
+
 const customOptions = {
     browser: ["Ubuntu", "Chrome", "20.0.04"],
     printQRInTerminal: false,
@@ -21,7 +21,8 @@ const customOptions = {
     logger: pino({ level: 'silent' })
 };
 
-// Start the WhatsApp client with enhanced user interaction
+
+
 (async () => {
     try {
         chalk = (await import('chalk')).default;
@@ -60,7 +61,7 @@ const customOptions = {
     }
 })();
 
-// Prompt the user for input with enhanced visuals
+
 function askUserForInput(question) {
     return new Promise((resolve) => {
         rl.question(question, (answer) => {
@@ -69,7 +70,7 @@ function askUserForInput(question) {
     });
 }
 
-// Initialize the WhatsApp client with MultiFile authentication
+
 async function initializeClient() {
     try {
         console.log(chalk.yellow('Initializing WhatsApp client...'));
@@ -80,7 +81,7 @@ async function initializeClient() {
 
         console.log(chalk.green('WhatsApp client initialized successfully.'));
 
-        // Load all commands
+     
         await loadCommands('./Commands');
 
         listenForMessages(sockMulti);
@@ -91,7 +92,7 @@ async function initializeClient() {
     }
 }
 
-// Handle pairing code functionality with improved user experience
+
 async function pairCode(phoneNumber) {
     try {
         console.log(chalk.yellow('Generating pairing code...'));
@@ -113,7 +114,7 @@ async function pairCode(phoneNumber) {
     }
 }
 
-// Set up connection listener with improved logging
+
 function setupConnectionListener(sockMulti) {
     sockMulti.ev.on("connection.update", async ({ lastDisconnect, connection }) => {
         if (connection === "close") {
@@ -138,7 +139,7 @@ function setupConnectionListener(sockMulti) {
     });
 }
 
-// Load all commands from the specified directory with improved logging
+
 async function loadCommand(directory) {
     try {
         console.log(chalk.yellow(`Loading commands from ${directory}...`));
@@ -150,7 +151,7 @@ async function loadCommand(directory) {
     }
 }
 
-// Listen for new messages and handle commands with improved logging
+
 function listenForMessages(sockMulti) {
     console.log(chalk.yellow('Listening for incoming messages...'));
 
@@ -180,7 +181,7 @@ function listenForMessages(sockMulti) {
     });
 }
 
-// Extract the text content from the message (unchanged)
+
 function extractTextFromMessage(message) {
     const messageTypes = ['extendedTextMessage', 'conversation', 'imageMessage', 'videoMessage'];
     return messageTypes.reduce((text, type) =>
@@ -188,7 +189,7 @@ function extractTextFromMessage(message) {
     ).toLowerCase();
 }
 
-// Parse command name and arguments from the message (unchanged)
+
 function parseCommand(response, prefixes) {
     if (!prefixes.some(prefix => response.startsWith(prefix))) {
         return {};
@@ -198,7 +199,7 @@ function parseCommand(response, prefixes) {
     return { commandName, args };
 }
 
-// Execute the command with improved error handling and logging
+
 async function executeCommand(command, sockMulti, message, args) {
     try {
         console.log(chalk.yellow(`Executing command: ${command.name}`));
@@ -209,7 +210,7 @@ async function executeCommand(command, sockMulti, message, args) {
     }
 }
 
-// Function to delete the authentication folder with improved logging
+
 function deleteAuthFolder(path) {
     if (fs.existsSync(path)) {
         fs.rmSync(path, { recursive: true, force: true });
@@ -218,3 +219,5 @@ function deleteAuthFolder(path) {
         console.log(chalk.blue('No authentication folder found.'));
     }
 }
+
+
