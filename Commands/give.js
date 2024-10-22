@@ -36,7 +36,7 @@ module.exports = {
 
             // Check if the sender has enough gold
             if (sender.balance < amount) {
-                return await sock.sendMessage(msg.key.remoteJid, { text: "❌ You don't have enough gold to complete this transaction." });
+                return await sock.sendMessage(msg.key.remoteJid, { text: "😭cmon bro!! we know you want to brag that you are rich but we know this anount of gold is not in your wallet..😂😂" });
             }
 
             // Deduct gold from sender and add to recipient
