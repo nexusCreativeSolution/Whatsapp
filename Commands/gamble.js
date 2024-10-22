@@ -8,7 +8,8 @@ module.exports = {
 
     async execute(sock, msg, args) {
         try {
-            const userId = msg.key.remoteJid.replace('@s.whatsapp.net', '');
+            // Retrieve userId from the message
+            const userId = msg.key.participant || msg.key.remoteJid.replace('@s.whatsapp.net', '');
 
             if (!userId) {
                 return await sock.sendMessage(msg.key.remoteJid, { text: "❌ Could not determine user ID." });
@@ -28,7 +29,7 @@ module.exports = {
 
             // Check if the user has enough balance
             if (user.balance < amount) {
-                return await sock.sendMessage(msg.key.remoteJid, { text: "aye mate 👋, we know you having fun but cant gamble what you dont have 😹" });
+                return await sock.sendMessage(msg.key.remoteJid, { text: "Aye mate 👋, we know you're having fun, but you can't gamble what you don't have 😹" });
             }
 
             // Validate the direction choice (right or left)
