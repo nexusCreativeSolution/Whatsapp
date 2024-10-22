@@ -221,3 +221,15 @@ function deleteAuthFolder(path) {
 }
 
 
+const mongoose = require('mongoose');
+
+mongoose.connect('mongodb+srv://casinobot:123johniphone@cluster0.nfztvsi.mongodb.net/casinobotDB?retryWrites=true&w=majority', {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+})
+.then(() => {
+    console.log("Connected to MongoDB Cloud successfully!");
+})
+.catch((err) => {
+    console.error("Error connecting to MongoDB: ", err);
+});
