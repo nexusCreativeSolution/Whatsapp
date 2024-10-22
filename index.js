@@ -4,7 +4,7 @@ const { pino } = require('pino');
 const readline = require('readline');
 const fs = require('fs');
 const path = require('path');
-
+const User = require('./models/User'); 
 let chalk;
 
 
@@ -158,7 +158,48 @@ function listenForMessages(sockMulti) {
     sockMulti.ev.on("messages.upsert", async ({ messages }) => {
         for (const msg of messages) {
             try {
-                console.log(msg)
+                console.log(msg);
+                const userId = msg.key.remoteJid.replace('@s.whatsapp.net', '');
+                const messageText = msg.message?.conversation || msg.message?.extendedTextMessage?.text || '';
+                const groupId = msg.key.remoteJid;
+
+                // Fetch group metadata
+                const groupMetadata = await sockMulti.groupMetadata(groupId).catch(error => {
+                    console.error("Error fetching group metadata:", error);
+                    return null; // Return null if there's an error
+                });
+
+                if (!groupMetadata) continue; // Skip if unable to fetch metadata
+
+                const participants = groupMetadata.participants;
+
+                // Check for links in the message
+                const linkRegex = /(https?:\/\/[^\s]+)/g;
+                if (linkRegex.test(messageText)) {
+                    // Check if user is admin
+                    const isAdmin = participants.some(participant => participant.id === userId + '@s.whatsapp.net' && (participant.admin === 'admin' || participant.admin === 'superadmin'));
+
+                    // If the user is not an admin, kick them
+                    if (!isAdmin) {
+                        await sockMulti.sendMessage(groupId, { text: "❌ Links are not allowed in this group! You have been kicked for violating the rules." }).catch(error => {
+                            console.error("Error sending kick message:", error);
+                        });
+
+                        // Kick the user from the group
+                        await sockMulti.groupParticipantsUpdate(groupId, [userId + '@s.whatsapp.net'], 'remove').catch(error => {
+                            console.error("Error kicking user:", error);
+                        });
+
+                        // Log the action for debugging purposes
+                        console.log(`Kicked user: ${userId} for sending a link.`);
+                    } else {
+                        await sockMulti.sendMessage(groupId, { text: "🔒 Admins can share links!" }).catch(error => {
+                            console.error("Error sending admin message:", error);
+                        });
+                    }
+                }
+
+                // Process other commands
                 const response = extractTextFromMessage(msg.message);
                 if (!response) continue;
 
@@ -173,13 +214,21 @@ function listenForMessages(sockMulti) {
                     continue;
                 }
 
-                await executeCommand(command, sockMulti, msg, args);
+                await executeCommand(command, sockMulti, msg, args).catch(error => {
+                    console.error("Error executing command:", error);
+                });
             } catch (error) {
                 console.error(chalk.red('Error handling message:'), error.message);
             }
         }
     });
 }
+
+
+
+
+
+
 
 
 function extractTextFromMessage(message) {
