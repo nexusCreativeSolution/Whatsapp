@@ -36,7 +36,6 @@ module.exports = {
             'Fun': '🎉',
             'Utility': '🛠️',
             'Music': '🎵',
-            'Economy': '💰', // Added Economy category for better structure
         };
 
         // Build the help message with a line separator for each command type
@@ -47,7 +46,7 @@ module.exports = {
             helpMessage += `═══════════════════════\n`;
             cmds.forEach(cmd => {
                 const usage = cmd.usage && Array.isArray(cmd.usage) ? cmd.usage.join(', ') : 'No usage available';
-                helpMessage += `➤ **\`${usage}\`**: ${cmd.desc}\n`; // Improved command format
+                helpMessage += `* ${usage}: ${cmd.desc}\n`;
             });
             helpMessage += `\n`;
         }
@@ -59,14 +58,19 @@ module.exports = {
             // URL to the image you want to send
             const imageUrl = 'https://i.ibb.co/qmdqMZN/file-397.jpg';
 
-            // Fetch the image from the URL
-            const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
-            const imageBuffer = Buffer.from(response.data, 'binary');
-
-            // Send the image with the help message
+            // Send the help message with an image and context info
             await sock.sendMessage(groupId, {
-                image: imageBuffer, // Directly pass the buffer
-                caption: helpMessage
+                image: { url: imageUrl },
+                caption: helpMessage,
+                contextInfo: {
+                    externalAdReply: {
+                        title: "Nexus Bank",
+                        body: "Join our WhatsApp Channel for updates and more!",
+                        mediaType: 1,
+                        mediaUrl: "https://whatsapp.com/channel/0029VacWsSl3LdQOmWZrBj0l",
+                        sourceUrl: "https://whatsapp.com/channel/0029VacWsSl3LdQOmWZrBj0l",
+                    },
+                },
             });
         } catch (error) {
             console.error('Error sending help image:', error);
