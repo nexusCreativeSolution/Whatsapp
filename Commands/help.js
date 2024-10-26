@@ -36,6 +36,7 @@ module.exports = {
             'Fun': '🎉',
             'Utility': '🛠️',
             'Music': '🎵',
+            'Economy': '💰', // Added Economy category for better structure
         };
 
         // Build the help message with a line separator for each command type
@@ -46,7 +47,7 @@ module.exports = {
             helpMessage += `═══════════════════════\n`;
             cmds.forEach(cmd => {
                 const usage = cmd.usage && Array.isArray(cmd.usage) ? cmd.usage.join(', ') : 'No usage available';
-                helpMessage += `* ${usage}: ${cmd.desc}\n`;
+                helpMessage += `➤ **\`${usage}\`**: ${cmd.desc}\n`; // Improved command format
             });
             helpMessage += `\n`;
         }
@@ -72,4 +73,4 @@ module.exports = {
             await sock.sendMessage(groupId, { text: helpMessage });
         }
     }
-};  
+};
