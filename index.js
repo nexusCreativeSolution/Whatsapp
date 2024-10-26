@@ -7,7 +7,6 @@ const path = require('path');
 const mongoose = require('mongoose');
 const User = require('./models/User');
 let chalk;
-const debug = false; // Define debug globally
 
 const rl = readline.createInterface({
     input: process.stdin,
@@ -69,12 +68,12 @@ function askUserForInput(question) {
 
 async function initializeClient() {
     try {
-        if (debug) console.log(chalk.yellow('Initializing WhatsApp client...'));
+        console.log(chalk.yellow('Initializing WhatsApp client...'));
         const clientMulti = await WhatsAppClient.create("multi", './authFiles', customOptions);
         const sockMulti = await clientMulti.getSocket();
 
         setupConnectionListener(sockMulti);
-        if (debug) console.log(chalk.green('WhatsApp client initialized successfully.'));
+        console.log(chalk.green('WhatsApp client initialized successfully.'));
         await loadCommands('./Commands');
         listenForMessages(sockMulti);
     } catch (error) {
@@ -86,7 +85,7 @@ async function initializeClient() {
 
 async function pairCode(phoneNumber) {
     try {
-        if (debug) console.log(chalk.yellow('Generating pairing code...'));
+        console.log(chalk.yellow('Generating pairing code...'));
         const clientMulti = await WhatsAppClient.create("multi", './authFiles', customOptions);
         const sockMulti = await clientMulti.getSocket();
         await delay(2500);
@@ -109,7 +108,7 @@ function setupConnectionListener(sockMulti) {
         if (connection === "close") {
             const shouldReconnect = lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut;
             if (shouldReconnect) {
-                if (debug) console.log(chalk.yellow("Connection lost. Attempting to reconnect..."));
+                console.log(chalk.yellow("Connection lost. Attempting to reconnect..."));
                 try {
                     await initializeClient();
                 } catch (reconnectError) {
@@ -120,22 +119,32 @@ function setupConnectionListener(sockMulti) {
                 deleteAuthFolder('./authFiles');
             }
         } else if (connection === "open") {
-            if (debug) console.log(chalk.green("WhatsApp connection established successfully."));
+            console.log(chalk.green("WhatsApp connection established successfully."));
         } else {
-            if (debug) console.log(chalk.blue(`Connection update: ${connection}`));
+            console.log(chalk.blue(`Connection update: ${connection}`));
         }
     });
 }
 
+async function loadCommand(directory) {
+    try {
+        console.log(chalk.yellow(`Loading commands from ${directory}...`));
+        const commands = await getAllCommands(directory);
+        console.log(chalk.green(`${commands.length} commands loaded successfully.`));
+        commands.forEach(cmd => console.log(chalk.cyan(`  - ${cmd.usage}`)));
+    } catch (error) {
+        console.error(chalk.red('Error loading commands:'), error.message);
+    }
+}
+
 function listenForMessages(sockMulti) {
-    if (debug) console.log(chalk.yellow('Listening for incoming messages...'));
+    console.log(chalk.yellow('Listening for incoming messages...'));
 
     sockMulti.ev.on("messages.upsert", async ({ messages }) => {
         for (const msg of messages) {
             try {
-                if (debug) console.log(msg);
                 const userId = msg.key.remoteJid.replace('@s.whatsapp.net', '');
-                const messageText = msg.message?.conversation || '';
+                const messageText = msg.message?.conversation || (msg.message?.extendedTextMessage && msg.message.extendedTextMessage.text) || '';
                 const groupId = msg.key.remoteJid;
 
                 // Process commands
@@ -145,15 +154,17 @@ function listenForMessages(sockMulti) {
                 const { commandName, args } = parseCommand(response, ['!', '.', '/']);
                 if (!commandName) continue;
 
-                if (debug) console.log(chalk.blue(`Received command: ${commandName}`));
+                console.log(chalk.blue(`Received command: ${commandName}`));
 
                 const command = await getCommand(commandName);
                 if (!command) {
-                    if (debug) console.log(chalk.yellow(`Command not found: ${commandName}`));
+                    console.log(chalk.yellow(`Command not found: ${commandName}`));
                     continue;
                 }
 
-                await executeCommand(command, sockMulti, msg, args);
+                await executeCommand(command, sockMulti, msg, args).catch(error => {
+                    console.error("Error executing command:", error);
+                });
             } catch (error) {
                 console.error(chalk.red('Error handling message:'), error.message);
             }
@@ -162,7 +173,8 @@ function listenForMessages(sockMulti) {
 }
 
 function extractTextFromMessage(message) {
-    return message?.conversation?.toLowerCase() || '';
+    const messageTypes = ['extendedTextMessage', 'conversation'];
+    return messageTypes.reduce((text, type) => text || (message[type] && (message[type].text || message[type].caption || message[type])) || '', '').toLowerCase();
 }
 
 function parseCommand(response, prefixes) {
@@ -176,9 +188,9 @@ function parseCommand(response, prefixes) {
 
 async function executeCommand(command, sockMulti, message, args) {
     try {
-        if (debug) console.log(chalk.yellow(`Executing command: ${command.name}`));
+        console.log(chalk.yellow(`Executing command: ${command.name}`));
         await command.execute(sockMulti, message, args);
-        if (debug) console.log(chalk.green(`Command ${command.name} executed successfully.`));
+        console.log(chalk.green(`Command ${command.name} executed successfully.`));
     } catch (cmdError) {
         console.error(chalk.red(`Error executing command '${command.name}':`), cmdError.message);
     }
@@ -189,7 +201,7 @@ function deleteAuthFolder(path) {
         fs.rmSync(path, { recursive: true, force: true });
         console.log(chalk.yellow('Authentication folder deleted due to logout.'));
     } else {
-        if (debug) console.log(chalk.blue('No authentication folder found.'));
+        console.log(chalk.blue('No authentication folder found.'));
     }
 }
 
@@ -198,7 +210,7 @@ mongoose.connect('mongodb+srv://casinobot:123johniphone@cluster0.nfztvsi.mongodb
     useUnifiedTopology: true,
 })
 .then(() => {
-    if (debug) console.log("Connected to MongoDB Cloud successfully!");
+    console.log("Connected to MongoDB Cloud successfully!");
 })
 .catch((err) => {
     console.error("Error connecting to MongoDB: ", err);
