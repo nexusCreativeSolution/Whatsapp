@@ -8,35 +8,42 @@ module.exports = {
 
     async execute(sock, msg, args) {
         try {
-            const groupId = msg.key.remoteJid; // Group or user chat ID
-            const userId = msg.key.participant || msg.key.remoteJid; // User ID
-            const betAmount = parseInt(args[0], 10); // Bet amount
+            const groupId = msg.key.remoteJid; // Get the group or user chat ID
+            const userId = msg.key.participant || msg.key.remoteJid; // Get the user ID
+            const betAmount = parseInt(args[0], 10); // Parse bet amount from arguments
 
+            // Validate bet amount
             if (isNaN(betAmount) || betAmount < 10000) {
-                return await sock.sendMessage(groupId, { text: "💔yh you have been gambling yes🤷‍♂️ but this leauge require a minimum of 10,000 coins to play😂" });
+                return await sock.sendMessage(groupId, { 
+                    text: "💔 You need a minimum bet of 10,000 coins to play. Please try again!" 
+                });
             }
 
+            // Check user account
             let user = await User.findOne({ userId });
-
             if (!user) {
-                return await sock.sendMessage(groupId, { text: "❌ You don't have an account yet. Please register to play the slot machine." });
+                return await sock.sendMessage(groupId, { 
+                    text: "❌ You don't have an account yet. Please register to play the slot machine." 
+                });
             }
 
+            // Check if user has enough balance
             if (user.balance < betAmount) {
-                return await sock.sendMessage(groupId, { text: `❌ You don't have enough coins. Your current balance is ${user.balance} coins.` });
+                return await sock.sendMessage(groupId, { 
+                    text: `❌ Insufficient balance. Your current balance is ${user.balance} coins.` 
+                });
             }
 
             // Deduct the bet amount from the user's balance
             user.balance -= betAmount;
 
-            // Slot machine configuration
+            // Slot machine symbols and weights
             const slotEmojis = ['🍒', '🍋', '🍇', '🍉', '🔔', '⭐', '🍀', '💎', '👑'];
+            const weights = [3, 3, 3, 3, 2, 2, 1, 1, 1]; // Adjusted weights for more balanced results
             const rareSymbols = ['💎', '👑']; // Rare symbols for bigger payouts
 
-            // Create a more balanced random function
+            // Function to get a random emoji based on weights
             const getRandomEmoji = () => {
-                // Increase the chance of getting some common symbols
-                const weights = [3, 3, 3, 3, 2, 2, 1, 1, 1]; // Higher weight = more frequent appearance
                 const totalWeight = weights.reduce((acc, weight) => acc + weight, 0);
                 const random = Math.floor(Math.random() * totalWeight);
                 let cumulativeWeight = 0;
@@ -49,39 +56,24 @@ module.exports = {
                 }
             };
 
-            // Generate a 3x3 slot machine result (3 rows, 3 columns)
+            // Generate a 3x3 slot machine result
             const slots = [
                 [getRandomEmoji(), getRandomEmoji(), getRandomEmoji()],
                 [getRandomEmoji(), getRandomEmoji(), getRandomEmoji()],
                 [getRandomEmoji(), getRandomEmoji(), getRandomEmoji()]
             ];
 
-            // Display the slot machine result
+            // Format the slot machine result
             let slotResult = `🎰 **SLOT MACHINE** 🎰\n\n`;
             slotResult += `══════════════\n`;
             slotResult += slots.map(row => row.join(' | ')).join('\n');
             slotResult += `\n══════════════\n`;
 
-            // Win conditions: 
-            // 1. Three matching symbols on any row.
-            // 2. Two matching symbols on any row for a smaller reward.
-            // 3. Three matching rare symbols for higher reward.
-            let isJackpot = false;
-            let isRareWin = false;
-            let isSmallWin = false;
+            // Determine winnings based on the result
             let winnings = 0;
-
-            for (const row of slots) {
-                if (row[0] === row[1] && row[1] === row[2]) {
-                    if (rareSymbols.includes(row[0])) {
-                        isRareWin = true;
-                    } else {
-                        isJackpot = true;
-                    }
-                } else if (row[0] === row[1] || row[1] === row[2]) {
-                    isSmallWin = true;
-                }
-            }
+            const isJackpot = slots.some(row => row[0] === row[1] && row[1] === row[2]);
+            const isRareWin = slots.some(row => rareSymbols.includes(row[0]) && row[0] === row[1] && row[1] === row[2]);
+            const isSmallWin = slots.some(row => row[0] === row[1] || row[1] === row[2]);
 
             if (isRareWin) {
                 winnings = betAmount * 5; // Rare symbol win: 5x the bet
@@ -107,7 +99,9 @@ module.exports = {
 
         } catch (error) {
             console.error('Error playing advanced slot machine:', error);
-            await sock.sendMessage(msg.key.remoteJid, { text: `❌ An error occurred while playing the slot machine: ${error.message}` });
+            await sock.sendMessage(msg.key.remoteJid, { 
+                text: `❌ An error occurred while playing the slot machine: ${error.message}` 
+            });
         }
     }
 };
