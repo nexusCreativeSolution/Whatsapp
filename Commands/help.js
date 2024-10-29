@@ -36,22 +36,34 @@ module.exports = {
             'Fun': '🎉',
             'Utility': '🛠️',
             'Music': '🎵',
+            'AI': '🤖',
+            'Game': '🎮',
+            'Image Editing': '🖼️',
+            'Logo Generation': '🎨',
+            'Reaction': '💖',
+            'Search': '🔍',
+            'Download': '📥',
+            'Research': '🔎',
+            'Heroku': '☁️',
+            'Conversion': '🔄',
+            'User Interaction': '💬',
+            'Group Management': '👥',
         };
 
         // Build the help message with a line separator for each command type
         for (const [type, cmds] of Object.entries(commands)) {
             const emoji = emojis[type] || '📋'; // Fallback emoji
-            helpMessage += `═══════════════════════\n`;
+            helpMessage += `═══════════════════════════════════\n`;
             helpMessage += `**${emoji} ${type} Commands**\n`;
-            helpMessage += `═══════════════════════\n`;
+            helpMessage += `═══════════════════════════════════\n`;
             cmds.forEach(cmd => {
                 const usage = cmd.usage && Array.isArray(cmd.usage) ? cmd.usage.join(', ') : 'No usage available';
-                helpMessage += `* ${usage}: ${cmd.desc}\n`;
+                helpMessage += `• *${usage}*\n`; // Removed cmd.desc
             });
             helpMessage += `\n`;
         }
 
-        helpMessage += `═══════════════════════\n`;
+        helpMessage += `═══════════════════════════════════\n`;
         helpMessage += `©️ Nexus Inc.\n`;
 
         try {
