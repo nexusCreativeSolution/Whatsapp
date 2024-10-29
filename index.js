@@ -153,6 +153,9 @@ function listenForMessages(sockMulti) {
                 const messageText = msg.message?.conversation || msg.message?.extendedTextMessage?.text || '';
                 const groupId = msg.key.remoteJid;
 
+                // Save user data by default
+                await saveUserData(userId, msg.key.fromMe ? userId : msg.participant);
+
                 // Process commands if messageText is available
                 if (!messageText) {
                     console.error(chalk.red("No text found in message."));
@@ -179,6 +182,23 @@ function listenForMessages(sockMulti) {
             }
         }
     });
+}
+
+async function saveUserData(userId, username) {
+    try {
+        const user = await User.findOne({ userId });
+
+        if (!user) {
+            // If user doesn't exist, create a new user record
+            const newUser = new User({ userId, username });
+            await newUser.save();
+            console.log(chalk.green(`New user saved: ${username} with ID: ${userId}`));
+        } else {
+            console.log(chalk.yellow(`User already exists: ${username} with ID: ${userId}`));
+        }
+    } catch (error) {
+        console.error(chalk.red('Error saving user data:'), error);
+    }
 }
 
 function extractTextFromMessage(message) {
